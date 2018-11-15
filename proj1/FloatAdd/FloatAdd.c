@@ -111,7 +111,7 @@ float fp_add(float a, float b) {
 	printf("sig_Z is :\n");
 	printBits(sizeof(sig_Z), &sig_Z);
 	/* if (sig_Z & 0b1000000000000000000000000) { */
-	if (sig_Z & 0xFF800000) {
+	if (sig_Z & 0x1800000) {
 		sig_Z = sig_Z >> 1;
 		exp_Z += 1;
 		if (exp_Z & 0b100000000) {
