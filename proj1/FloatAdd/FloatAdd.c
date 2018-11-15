@@ -110,6 +110,8 @@ float fp_add(float a, float b) {
 	printBits(sizeof(sig_X), &sig_X);
 	printf("sig_Z is :\n");
 	printBits(sizeof(sig_Z), &sig_Z);
+	printf("exp_Z is :\n");
+	printBits(sizeof(exp_Z), &exp_Z);
 	/* if (sig_Z & 0b1000000000000000000000000) { */
 	if (sig_Z & 0x1800000) {
 		sig_Z = sig_Z >> 1;
@@ -137,8 +139,12 @@ float fp_add(float a, float b) {
 		Z |= exp_Z << 23;
 		Z |= sig_Z;
 		return int_to_float(Z);
-	} else {
-		printf("denormalized \n");
+	} else if ((exp_Z ^ 0) && (exp_Z ^ 0xFF)) {
+		while ((sig_Z & 0b100000000000000000000000) == 0) {
+			sig_Z = sig_Z << 1;
+			exp_Z -= 1;
+			if (exp_Z == 0) { return 0; }
+		}
 		sig_Z &= 0x3fffff;
 		unsigned int Z = 0;
 		Z |= sign_Z << 31;
@@ -150,7 +156,7 @@ float fp_add(float a, float b) {
 
 int main() {
 	/* float result = fp_add(5.87747175411143753984368268611E-39, 5.87747175411143753984368268611E-39); */
-	float result = fp_add(1.5, 5.5);
+	float result = fp_add(-17.0, 5.5);
 	printf("result is %f\n", result);
 	printBits(sizeof(result), &result);
 	return 0;
