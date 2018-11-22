@@ -46,6 +46,10 @@ float fp_add(float a, float b) {
 	unsigned int exp_X = (X & 0b01111111100000000000000000000000) >> 23;
 	unsigned int exp_Y = (Y & 0b01111111100000000000000000000000) >> 23;
 	printf("exp_X is %x exp_Y is %x\n", exp_X, exp_Y);
+	if (!exp_X ^ 0xFF)
+		return a;
+	if (!exp_Y ^ 0xFF)
+		return b;
 	// We can extract Mantissas by ANDing the first 23 bits. We convert these to
 	// the significant (of the form 1.M) by ORing a set 24th bit.
     unsigned int sig_X, sig_Y;
@@ -156,8 +160,7 @@ float fp_add(float a, float b) {
 
 int main() {
 	/* float result = fp_add(5.87747175411143753984368268611E-39, 5.87747175411143753984368268611E-39); */
-	float result = fp_add(-17.0, 5.5);
+	float result = fp_add(0./0., 5);
 	printf("result is %f\n", result);
-	printBits(sizeof(result), &result);
 	return 0;
 }
