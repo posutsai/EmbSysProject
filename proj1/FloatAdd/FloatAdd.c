@@ -46,9 +46,9 @@ float fp_add(float a, float b) {
 	unsigned int exp_X = (X & 0b01111111100000000000000000000000) >> 23;
 	unsigned int exp_Y = (Y & 0b01111111100000000000000000000000) >> 23;
 	printf("exp_X is %x exp_Y is %x\n", exp_X, exp_Y);
-	if (!exp_X ^ 0xFF)
+	if (!(exp_X ^ 0xFF))
 		return a;
-	if (!exp_Y ^ 0xFF)
+	if (!(exp_Y ^ 0xFF))
 		return b;
 	// We can extract Mantissas by ANDing the first 23 bits. We convert these to
 	// the significant (of the form 1.M) by ORing a set 24th bit.
@@ -103,7 +103,6 @@ float fp_add(float a, float b) {
 	signed long long sigl_Z = sigl_X + sigl_Y;
 	int sign_Z = sigl_Z < 0 ? 1 : 0;
 	if (sigl_Z < 0) {
-		printf("here\n");
 		sigl_Z *= -1;
 	}
 	unsigned int sig_Z = (unsigned int) sigl_Z;
@@ -116,15 +115,16 @@ float fp_add(float a, float b) {
 	printBits(sizeof(sig_Z), &sig_Z);
 	printf("exp_Z is :\n");
 	printBits(sizeof(exp_Z), &exp_Z);
-	/* if (sig_Z & 0b1000000000000000000000000) { */
+	// need to check both 25 and 24 bit
+	// mantissa 3.0 => 0b 00000000,1|100,0000,0000,0000,0000,0000
+	// mantissa 1.5 => 0b 00000000,0|110,0000,0000,0000,0000,0000
 	if (sig_Z & 0x1800000) {
+		// overflow!!!
 		sig_Z = sig_Z >> 1;
 		exp_Z += 1;
 		if (exp_Z & 0b100000000) {
 			if (sign_Z > 0) {
-				//! why do we need two return statement?
 				return 1.0 / 0.0;
-				return -1.0 / 0.0;
 			}
 		}
 		while ((sig_Z & 0b100000000000000000000000) == 0) {
@@ -143,12 +143,7 @@ float fp_add(float a, float b) {
 		Z |= exp_Z << 23;
 		Z |= sig_Z;
 		return int_to_float(Z);
-	} else if ((exp_Z ^ 0) && (exp_Z ^ 0xFF)) {
-		while ((sig_Z & 0b100000000000000000000000) == 0) {
-			sig_Z = sig_Z << 1;
-			exp_Z -= 1;
-			if (exp_Z == 0) { return 0; }
-		}
+	} else {
 		sig_Z &= 0x3fffff;
 		unsigned int Z = 0;
 		Z |= sign_Z << 31;
@@ -160,7 +155,7 @@ float fp_add(float a, float b) {
 
 int main() {
 	/* float result = fp_add(5.87747175411143753984368268611E-39, 5.87747175411143753984368268611E-39); */
-	float result = fp_add(0./0., 5);
+	float result = fp_add(1.5, 3.);
 	printf("result is %f\n", result);
 	return 0;
 }
